@@ -1,4 +1,4 @@
-package scrapper
+package scraper
 
 type Meme struct {
 	Url     string

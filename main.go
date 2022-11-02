@@ -7,7 +7,7 @@ import (
 
 	"memes-swe-challenge/clients"
 	"memes-swe-challenge/log"
-	"memes-swe-challenge/scrapper"
+	"memes-swe-challenge/scraper"
 )
 
 const defaultAmountValue = 10
@@ -28,11 +28,6 @@ func main() {
 		Getter: &http.Client{},
 	}
 
-	scrapper := scrapper.NewCollector(logger, &pageClient, *amountCmdValue)
-	scrapper.OnHTML()
-	scrapper.OnRequest()
-	scrapper.OnResponse()
-	scrapper.OnScraped()
-	scrapper.OnVisit()
-	scrapper.OnError()
+	scraper := scraper.NewCollector(logger, &pageClient, *amountCmdValue)
+	scraper.ScrapeSite()
 }
