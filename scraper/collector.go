@@ -87,8 +87,8 @@ func (s *Scraper) getImgAndSave() {
 	for i := 0; i < s.threads; i++ {
 		go func(c chan MemeToStore) {
 			for {
-				value, more := <-c
-				if more == false {
+				value, next := <-c
+				if next == false {
 					wg.Done()
 					return
 				}
