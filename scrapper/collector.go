@@ -13,8 +13,7 @@ import (
 )
 
 const (
-	imagesPath  = "images"
-	imagesLimit = 10
+	imagesPath = "images"
 )
 
 type Scrapper struct {
@@ -22,9 +21,10 @@ type Scrapper struct {
 	collyCollector *colly.Collector
 	pageClient     *clients.PageClient
 	memes          []Meme
+	imagesLimit    int
 }
 
-func NewCollector(logger *log.Logger, pageClient *clients.PageClient) *Scrapper {
+func NewCollector(logger *log.Logger, pageClient *clients.PageClient, imagesLimit int) *Scrapper {
 	collector := colly.NewCollector()
 	collector.SetRequestTimeout(120 * time.Second)
 	return &Scrapper{
@@ -32,6 +32,7 @@ func NewCollector(logger *log.Logger, pageClient *clients.PageClient) *Scrapper 
 		collyCollector: collector,
 		pageClient:     pageClient,
 		memes:          make([]Meme, 0),
+		imagesLimit:    imagesLimit,
 	}
 }
 
@@ -43,7 +44,15 @@ func (s *Scrapper) OnHTML() {
 		item.DataSrc = e.ChildAttr("img", "data-src")
 		s.memes = append(s.memes, item)
 	})
+	s.collyCollector.OnHTML("[aria-label=\"Go to next page\"]", func(e *colly.HTMLElement) {
+		if len(s.memes) < s.imagesLimit {
+			nextPage := e.Request.AbsoluteURL(e.Attr("href"))
+			s.logger.Info().Msgf("Going to next page %v", nextPage)
+			s.collyCollector.Visit(nextPage)
+		}
+	})
 }
+
 func (s *Scrapper) OnRequest() {
 	s.collyCollector.OnRequest(func(r *colly.Request) {
 		s.logger.Info().Msgf("Visiting: %v", r.URL)
@@ -66,7 +75,7 @@ func (s *Scrapper) OnScraped() {
 			s.logger.Error().Err(err)
 		}
 		for idx, img := range s.memes {
-			if idx == imagesLimit {
+			if idx == s.imagesLimit {
 				break
 			}
 			bytesFile, err := s.pageClient.GetImageFromUrl(img.DataSrc)
