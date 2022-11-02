@@ -23,9 +23,10 @@ type Scraper struct {
 	pageClient     *clients.PageClient
 	memes          []Meme
 	imagesLimit    int
+	threads        int
 }
 
-func NewCollector(logger *log.Logger, pageClient *clients.PageClient, imagesLimit int) *Scraper {
+func NewCollector(logger *log.Logger, pageClient *clients.PageClient, imagesLimit int, threadsValue int) *Scraper {
 	collector := colly.NewCollector()
 	collector.SetRequestTimeout(120 * time.Second)
 	return &Scraper{
@@ -34,6 +35,7 @@ func NewCollector(logger *log.Logger, pageClient *clients.PageClient, imagesLimi
 		pageClient:     pageClient,
 		memes:          make([]Meme, 0),
 		imagesLimit:    imagesLimit,
+		threads:        threadsValue,
 	}
 }
 
