@@ -5,7 +5,7 @@ import (
 
 	"memes-swe-challenge/clients"
 	"memes-swe-challenge/log"
-	"memes-swe-challenge/scrapper"
+	"memes-swe-challenge/scraper"
 )
 
 func main() {
@@ -16,11 +16,6 @@ func main() {
 		Getter: &http.Client{},
 	}
 
-	scrapper := scrapper.NewCollector(logger, &pageClient)
-	scrapper.OnHTML()
-	scrapper.OnRequest()
-	scrapper.OnResponse()
-	scrapper.OnScraped()
-	scrapper.OnVisit()
-	scrapper.OnError()
+	scraper := scraper.NewCollector(logger, &pageClient)
+	scraper.ScrapeSite()
 }
