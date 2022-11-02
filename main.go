@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"flag"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -10,13 +12,23 @@ import (
 	"memes-swe-challenge/scraper"
 )
 
-const defaultAmountValue = 10
+const (
+	exitFail           = 1
+	defaultAmountValue = 10
+)
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(exitFail)
+	}
+}
+
+func run() error {
 	logger := log.NewLogger()
 
 	if len(os.Args) < 2 {
-		logger.Error().Msgf("expected 'amount' command, using default value %v", defaultAmountValue)
+		return errors.New("expected 'amount' command")
 	}
 	amountCmdValue := flag.Int("amount", defaultAmountValue, "indicate the amount of images to download")
 	flag.Parse()
@@ -30,4 +42,6 @@ func main() {
 
 	scraper := scraper.NewCollector(logger, &pageClient, *amountCmdValue)
 	scraper.ScrapeSite()
+
+	return nil
 }
