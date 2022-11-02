@@ -66,28 +66,27 @@ func (s *Scraper) ScrapeSite() {
 		s.logger.Error().Err(e)
 	})
 
-	s.collyCollector.OnScraped(func(r *colly.Response) {
-		s.logger.Info().Msgf("Finished %v", r.Request.URL)
-		if err := os.Mkdir(imagesPath, os.ModePerm); err != nil {
+	s.collyCollector.Visit(pageUri)
+
+	s.collyCollector.Wait()
+
+	if err := os.Mkdir(imagesPath, os.ModePerm); err != nil {
+		s.logger.Error().Err(err)
+	}
+	s.logger.Info().Msgf("Total memes %v", len(s.memes))
+	for idx, img := range s.memes {
+		if idx == s.imagesLimit {
+			break
+		}
+		bytesFile, err := s.pageClient.GetImageFromUrl(img.DataSrc)
+		if err != nil {
 			s.logger.Error().Err(err)
 		}
-		for idx, img := range s.memes {
-			if idx == s.imagesLimit {
-				break
-			}
-			bytesFile, err := s.pageClient.GetImageFromUrl(img.DataSrc)
-			if err != nil {
-				s.logger.Error().Err(err)
-			}
-			if err := os.WriteFile(buildImageName(idx), bytesFile, 0664); err != nil {
-				s.logger.Error().Err(err)
-			}
+		if err := os.WriteFile(buildImageName(idx), bytesFile, 0664); err != nil {
+			s.logger.Error().Err(err)
 		}
-		s.logger.Info().Msg("Finished saving images in directory")
-
-	})
-
-	s.collyCollector.Visit(pageUri)
+	}
+	s.logger.Info().Msg("Finished saving images in directory")
 }
 
 func buildImageName(value int) string {
