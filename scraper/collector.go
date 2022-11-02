@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gocolly/colly"
@@ -79,19 +80,43 @@ func (s *Scraper) getImgAndSave() {
 	if err := os.Mkdir(imagesPath, os.ModePerm); err != nil {
 		s.logger.Error().Err(err)
 	}
-	for idx, img := range s.memes {
-		if idx == s.imagesLimit {
-			break
-		}
-		bytesFile, err := s.pageClient.GetImageFromUrl(img.DataSrc)
-		if err != nil {
-			s.logger.Error().Err(err)
-		}
-		if err := os.WriteFile(buildImageName(idx), bytesFile, 0664); err != nil {
-			s.logger.Error().Err(err)
-		}
+	channel := make(chan MemeToStore)
+	var wg sync.WaitGroup
+	wg.Add(s.threads)
+
+	for i := 0; i < s.threads; i++ {
+		go func(c chan MemeToStore) {
+			for {
+				value, more := <-c
+				if more == false {
+					wg.Done()
+					return
+				}
+				err := s.getImage(value.imageUrl, value.id)
+				if err != nil {
+					s.logger.Error().Err(err)
+				}
+			}
+		}(channel)
 	}
-	s.logger.Info().Msg("Finished saving images in directory")
+	for idx, meme := range s.memes {
+		channel <- MemeToStore{imageUrl: meme.DataSrc, id: idx}
+	}
+	close(channel)
+	wg.Wait()
+}
+
+func (s *Scraper) getImage(url string, idx int) error {
+	bytesFile, err := s.pageClient.GetImageFromUrl(url)
+	if err != nil {
+		s.logger.Error().Err(err)
+		return err
+	}
+	if err := os.WriteFile(buildImageName(idx), bytesFile, 0664); err != nil {
+		s.logger.Error().Err(err)
+		return err
+	}
+	return nil
 }
 
 func buildImageName(value int) string {

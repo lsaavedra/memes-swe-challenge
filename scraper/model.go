@@ -8,3 +8,8 @@ type Meme struct {
 	Width   int
 	Height  int
 }
+
+type MemeToStore struct {
+	imageUrl string
+	id       int
+}
