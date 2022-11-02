@@ -72,10 +72,13 @@ func (s *Scraper) ScrapeSite() {
 
 	s.collyCollector.Wait()
 
+	s.getImgAndSave()
+}
+
+func (s *Scraper) getImgAndSave() {
 	if err := os.Mkdir(imagesPath, os.ModePerm); err != nil {
 		s.logger.Error().Err(err)
 	}
-	s.logger.Info().Msgf("Total memes %v", len(s.memes))
 	for idx, img := range s.memes {
 		if idx == s.imagesLimit {
 			break
