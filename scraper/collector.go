@@ -8,7 +8,6 @@ import (
 
 	"github.com/gocolly/colly"
 
-	"memes-swe-challenge/clients"
 	"memes-swe-challenge/log"
 )
 
@@ -17,15 +16,20 @@ const (
 	pageUri    = "https://icanhas.cheezburger.com/"
 )
 
-type Scraper struct {
-	logger         *log.Logger
-	collyCollector *colly.Collector
-	pageClient     *clients.PageClient
-	memes          []Meme
-	imagesLimit    int
-}
+type (
+	Scraper struct {
+		logger         *log.Logger
+		collyCollector *colly.Collector
+		pageClient     pageClient
+		memes          []Meme
+		imagesLimit    int
+	}
+	pageClient interface {
+		GetImageFromUrl(url string) ([]byte, error)
+	}
+)
 
-func NewCollector(logger *log.Logger, pageClient *clients.PageClient, imagesLimit int) *Scraper {
+func NewCollector(logger *log.Logger, pageClient pageClient, imagesLimit int) *Scraper {
 	collector := colly.NewCollector()
 	collector.SetRequestTimeout(120 * time.Second)
 	return &Scraper{
