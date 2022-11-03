@@ -31,16 +31,16 @@ func TestScraper_getImage(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name:       "getImage - Success",
-			logger:     log.NewLogger(),
-			pageClient: mockPageClient{fail: false},
-			args:       args{url: "https://i.chzbgr.com/thumb800/18237957/hB702534D/of-a-cat-hand-walked-in-on-my-husband-using-our-cat-as-a-mobile-check-deposit-background-ming-ho", idx: 1},
-			wantErr:    false,
-		},
-		{
 			name:       "getImage - Fail by client",
 			logger:     log.NewLogger(),
 			pageClient: mockPageClient{fail: true},
+			args:       args{url: "https://i.chzbgr.com/thumb800/18237957/hB702534D/of-a-cat-hand-walked-in-on-my-husband-using-our-cat-as-a-mobile-check-deposit-background-ming-ho", idx: 1},
+			wantErr:    true,
+		},
+		{
+			name:       "getImage - Fail by directory error",
+			logger:     log.NewLogger(),
+			pageClient: mockPageClient{fail: false},
 			args:       args{url: "https://i.chzbgr.com/thumb800/18237957/hB702534D/of-a-cat-hand-walked-in-on-my-husband-using-our-cat-as-a-mobile-check-deposit-background-ming-ho", idx: 1},
 			wantErr:    true,
 		},
