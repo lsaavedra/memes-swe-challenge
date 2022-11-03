@@ -11,5 +11,7 @@ Then using the compiled binary :
 You must specify an "amount" of image to download
 Usage : go run memes-swe-challenge -[command]=<url>
   -amount int
-    	Set the amount of image to download. Default is 10
+    	Set the amount of image to download. Default is 10.
+  -threads int
+        Set the number of threads to run. Range from 1 to 5.
 ```
