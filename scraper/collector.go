@@ -9,7 +9,6 @@ import (
 
 	"github.com/gocolly/colly"
 
-	"memes-swe-challenge/clients"
 	"memes-swe-challenge/log"
 )
 
@@ -18,16 +17,21 @@ const (
 	pageUri    = "https://icanhas.cheezburger.com/"
 )
 
-type Scraper struct {
-	logger         *log.Logger
-	collyCollector *colly.Collector
-	pageClient     *clients.PageClient
-	memes          []Meme
-	imagesLimit    int
-	threads        int
-}
+type (
+	Scraper struct {
+		logger         *log.Logger
+		collyCollector *colly.Collector
+		pageClient     pageClient
+		memes          []Meme
+		imagesLimit    int
+		threads        int
+	}
+	pageClient interface {
+		GetImageFromUrl(url string) ([]byte, error)
+	}
+)
 
-func NewCollector(logger *log.Logger, pageClient *clients.PageClient, imagesLimit int, threadsValue int) *Scraper {
+func NewCollector(logger *log.Logger, pageClient pageClient, imagesLimit int, threadsValue int) *Scraper {
 	collector := colly.NewCollector()
 	collector.SetRequestTimeout(120 * time.Second)
 	return &Scraper{
@@ -99,6 +103,7 @@ func (s *Scraper) getImgAndSave() {
 			}
 		}(channel)
 	}
+	s.memes = s.memes[:s.imagesLimit]
 	for idx, meme := range s.memes {
 		channel <- MemeToStore{imageUrl: meme.DataSrc, id: idx}
 	}
